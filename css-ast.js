@@ -1,12 +1,59 @@
 class CSSAST {
 
-    static fromStr(str) {}
+    static fromStr(str) {
+        const ast = {lang: "CSS"};
+        ast.tree = [...str.matchAll(/([^\{\}]+)\{([^\{\}]+)\}/g)];
+
+        return ast;
+
+        function lineOne(str) {
+            str = str.replaceAll(/\/\*(.*)\*\//g, comment)
+                    .replaceAll(/(@.*)[;\n\r]/g, atRule);
+            const sel = str.split(/\{.*\}/g).filter(e => e.trim().length)[0];
+            str = str.replace(sel, selector(null, sel, null));
+            return str; //JSON.parse(str);
+        }
+
+        function rules(str) {
+            return str;
+        }
+
+        function comment(_match, capture, _index) {
+            return `{type: "comment", content: "${capture.replaceAll('"', '\"').trim()}"},`;
+        }
+
+        function atRule(_match, capture, _index) {
+            return `{type: "at-rule", content: "${capture.replaceAll('"', '\"').trim()}},"`;
+        }
+
+        function selector(_match, capture, _index) {
+            return `{type: "selector", content: "${capture.trim()}},"`;
+        }
+
+    }
 
     static fromFile(file) {}
 
 }
 
-export default CSSAST;
+console.log(CSSAST.fromStr(`
+    /* Imma comment! */
+    @import("importURL");
+    #header {
+        display: flex;
+        justify-content: space-around;
+    }
+    .main, .footer {
+        display: block;
+        text-align: center;
+    }
+    @supports (text-outline: 1px black) {
+        body { text-outline: 1px black }
+    }
+    @keyframes fadeout {from{opacity:1} 50%{opacity:0.75} to{opacity:0}}
+`));
+
+// export default CSSAST;
 
 function highlightCss(code){
 	console.log(code);
